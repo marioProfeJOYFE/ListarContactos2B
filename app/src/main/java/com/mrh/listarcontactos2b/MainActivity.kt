@@ -64,8 +64,30 @@ fun HomeView(modifier: Modifier = Modifier) {
     ) {
         listMostrar.forEach { persona ->
             Card(modifier = Modifier.fillMaxWidth()) {
-                Text(persona.nombre)
-                Text(persona.apellido)
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    Card(
+                        modifier = Modifier.size(30.dp),
+                        shape = RoundedCornerShape(50.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ){
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(persona.nombre.substring(0,1))
+                        }
+                    }
+                    Column {
+                        Text(persona.nombre)
+                        Text(persona.apellido)
+                    }
+                }
             }
             Spacer(Modifier.padding(14.dp))
         }
