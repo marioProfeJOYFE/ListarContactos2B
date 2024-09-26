@@ -27,9 +27,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.mrh.listarcontactos2b.ui.theme.ListarContactos2BTheme
 
 class MainActivity : ComponentActivity() {
@@ -38,6 +45,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val navController = rememberNavController()
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
             ListarContactos2BTheme {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
@@ -53,21 +62,45 @@ class MainActivity : ComponentActivity() {
                         )
                     },
                     floatingActionButton = {
-                        FilledIconButton(
-                            onClick = { Log.d("AccionBoton","Añadir") }
-                        ) {
-                            Icon(imageVector = Icons.Filled.Add, contentDescription = "Añadir")
+                        if (navBackStackEntry?.destination?.route != "formulario_view") {
+                            FilledIconButton(
+                                onClick = {
+                                    navController.navigate("formulario_view")
+                                }
+                            ) {
+                                Icon(imageVector = Icons.Filled.Add, contentDescription = "Añadir")
+                            }
                         }
                     }
                 ) { innerPadding ->
-                    HomeView(
-                        modifier = Modifier.padding(innerPadding)
+                    NavigationHost(
+                        modifier = Modifier.padding(innerPadding),
+                        navController = navController
                     )
                 }
             }
         }
     }
 }
+
+@Composable
+private fun NavigationHost(
+    modifier: Modifier = Modifier,
+    navController: NavHostController
+){
+    NavHost(
+        navController = navController,
+        startDestination = "home_view",
+    ) {
+        composable("home_view") {
+            HomeView(modifier = modifier)
+        }
+        composable("formulario_view") {
+            FormularioView(modifier = modifier)
+        }
+    }
+}
+
 
 @Composable
 fun HomeView(modifier: Modifier = Modifier) {
@@ -109,6 +142,16 @@ fun HomeView(modifier: Modifier = Modifier) {
         }
     }
 
+}
+
+
+@Composable
+fun FormularioView(modifier: Modifier = Modifier){
+    Column(
+        modifier = modifier
+    ) {
+        Text("ventana 2")
+    }
 }
 
 /**
