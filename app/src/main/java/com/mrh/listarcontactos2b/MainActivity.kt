@@ -1,7 +1,6 @@
 package com.mrh.listarcontactos2b
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -17,8 +16,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -37,7 +38,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -51,6 +51,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val viewModel = ListaContactosViewModel()
             val navController = rememberNavController()
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             ListarContactos2BTheme {
@@ -95,7 +96,8 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     NavigationHost(
                         modifier = Modifier.padding(innerPadding),
-                        navController = navController
+                        navController = navController,
+                        viewModel = viewModel
                     )
                 }
             }
@@ -106,24 +108,25 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun NavigationHost(
     modifier: Modifier = Modifier,
-    navController: NavHostController
+    navController: NavHostController,
+    viewModel: ListaContactosViewModel
 ){
     NavHost(
         navController = navController,
         startDestination = "home_view",
     ) {
         composable("home_view") {
-            HomeView(modifier = modifier)
+            HomeView(modifier = modifier, viewModel)
         }
         composable("formulario_view") {
-            FormularioView(modifier = modifier)
+            FormularioView(modifier = modifier, viewModel)
         }
     }
 }
 
 
 @Composable
-fun HomeView(modifier: Modifier = Modifier) {
+fun HomeView(modifier: Modifier = Modifier, viewModel: ListaContactosViewModel) {
     val listMostrar = cargarDatos()
 
     Column(
@@ -166,8 +169,13 @@ fun HomeView(modifier: Modifier = Modifier) {
 
 
 @Composable
-fun FormularioView(modifier: Modifier = Modifier){
+fun FormularioView(modifier: Modifier = Modifier, viewModel: ListaContactosViewModel){
     var nombre by remember { mutableStateOf("") }
+    var apellido by remember { mutableStateOf("") }
+    var hombre by remember { mutableStateOf(true) }
+    var mujer by remember { mutableStateOf(false) }
+    var telefono by remember { mutableStateOf("") }
+
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -181,6 +189,50 @@ fun FormularioView(modifier: Modifier = Modifier){
             },
             label = { Text("Nombre") }
         )
+        Spacer(Modifier.padding(12.dp))
+        TextField(
+            value = apellido,
+            onValueChange = { texto ->
+                apellido = texto
+            },
+            label = { Text("Apellido") }
+        )
+        Spacer(Modifier.padding(12.dp))
+        TextField(
+            value = telefono,
+            onValueChange = { texto ->
+                telefono = texto
+            },
+            label = { Text("Telefono") }
+        )
+        Spacer(Modifier.padding(12.dp))
+        Row(verticalAlignment = Alignment.CenterVertically){
+            Text("Hombre")
+            Checkbox(
+                checked = hombre,
+                onCheckedChange = {
+                    hombre = it
+                    mujer = !it
+                },
+                //enabled = !mujer
+            )
+            Text("Mujer")
+            Checkbox(
+                checked = mujer,
+                onCheckedChange = {
+                    mujer = it
+                    hombre = !it
+                },
+                //enabled = !hombre
+            )
+        }
+        Button(
+            onClick = {
+                //TODO: Guardar contacto
+            }
+        ) {
+            Text("Guardar Contacto")
+        }
     }
 }
 
@@ -188,6 +240,7 @@ fun FormularioView(modifier: Modifier = Modifier){
  *
  */
 fun cargarDatos(): ArrayList<Persona>{
+    //TODO: Cargar datos del viewModel
     //Crear lista de personas
     val ListContactos = ArrayList<Persona>()
     //Añadir elementos a la lista
