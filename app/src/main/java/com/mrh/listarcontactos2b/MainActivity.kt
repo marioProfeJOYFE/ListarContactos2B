@@ -35,7 +35,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -45,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.MutableLiveData
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -58,6 +58,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val viewModel = ListaContactosViewModel()
             val navController = rememberNavController()
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             ListarContactos2BTheme {
@@ -134,7 +135,8 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     NavigationHost(
                         modifier = Modifier.padding(innerPadding),
-                        navController = navController
+                        navController = navController,
+                        viewModel = viewModel
                     )
                 }
             }
@@ -150,25 +152,26 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun NavigationHost(
     modifier: Modifier = Modifier,
-    navController: NavHostController
+    navController: NavHostController,
+    viewModel: ListaContactosViewModel
 ){
     NavHost(
         navController = navController,
         startDestination = "home_view"
     ) {
         composable("home_view"){
-            HomeView(modifier)
+            HomeView(modifier, viewModel)
         }
         composable("formulario_view"){
-            FormularioView(modifier)
+            FormularioView(modifier, viewModel, navController)
         }
     }
 }
 
 
 @Composable
-fun HomeView(modifier: Modifier = Modifier) {
-    val listMostrar = cargarDatos()
+fun HomeView(modifier: Modifier = Modifier, viewModel: ListaContactosViewModel) {
+    val listMostrar = cargarViewModel(viewModel)
 
     Column(
         modifier = modifier
@@ -253,7 +256,11 @@ fun ContactoCard(contacto: Persona) {
 }
 
 @Composable
-fun FormularioView(modifier: Modifier = Modifier) {
+fun FormularioView(
+    modifier: Modifier = Modifier,
+    viewModel: ListaContactosViewModel,
+    navController: NavHostController
+) {
     //Variable mutable
     var nombre by remember { mutableStateOf("") }
     var apellido by remember { mutableStateOf("") }
@@ -314,7 +321,18 @@ fun FormularioView(modifier: Modifier = Modifier) {
         Spacer(Modifier.padding(12.dp))
         Button(
             onClick = {
-
+                var listContactos = viewModel.contactos.value as ArrayList<Persona>
+                listContactos.add(
+                    Persona(
+                        id = 0,
+                        nombre = nombre,
+                        apellido = apellido,
+                        sexo = if(hombre) "H" else "M",
+                        telefono = telefono.toInt()
+                    )
+                )
+                viewModel.contactos = MutableLiveData(listContactos)
+                navController.popBackStack()
             }
         ) {
             Text("Guardar Contacto")
@@ -349,3 +367,9 @@ fun cargarDatos(): ArrayList<Persona> {
     return ListContactos
 }
 
+fun cargarViewModel(viewModel: ListaContactosViewModel): ArrayList<Persona> {
+    if(viewModel.contactos.value === null){
+        viewModel.contactos = MutableLiveData(cargarDatos())
+    }
+    return viewModel.contactos.value as ArrayList<Persona>
+}
